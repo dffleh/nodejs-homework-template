@@ -7,11 +7,11 @@ async function authToken(req, res, next) {
   const [type, token] = authHeader.split(" ");
 
   if (type !== "Bearer") {
-    throw HttpError(401, "Not authorized");
+    throw new HttpError(401, "Not authorized");
   }
 
   if (!token) {
-    throw HttpError(401, "Not authorized");
+    throw new HttpError(401, "Not authorized");
   }
 
   try {
@@ -25,7 +25,7 @@ async function authToken(req, res, next) {
       error.name === "TokenExpiredError" ||
       error.name === "JsonWebTokenError"
     ) {
-      throw HttpError(401, "Not authorized");
+      throw new HttpError(401, "Not authorized");
     }
     throw error;
   }

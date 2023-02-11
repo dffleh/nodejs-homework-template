@@ -29,13 +29,13 @@ async function login(req, res, next) {
   });
 
   if (!storedUser) {
-    throw HttpError(401, "Email or password is wrong");
+    throw new HttpError(401, "Email or password is wrong");
   }
 
   const isPasswordValid = await bcrypt.compare(password, storedUser.password);
 
   if (!isPasswordValid) {
-    throw HttpError(401, "password is not valid");
+    throw new HttpError(401, "password is not valid");
   }
 
   const token = jwt.sign({ id: storedUser._id }, process.env.JWT_SECRET, {

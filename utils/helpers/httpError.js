@@ -1,8 +1,7 @@
-function HttpError(status, message) {
-  const err = new Error(message);
-  err.status = status;
-  return err;
+class HttpError extends Error {
+  constructor(status, message) {
+    super(message);
+    this.status = status;
+  }
 }
-module.exports = {
-  HttpError,
-};
+module.exports = { HttpError };
