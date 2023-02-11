@@ -21,6 +21,10 @@ const schema = mongoose.Schema(
       type: String,
       default: null,
     },
+    avatarURL: {
+      type: String,
+      default: null,
+    },
     contacts: [
       {
         type: mongoose.Schema.Types.ObjectId,
