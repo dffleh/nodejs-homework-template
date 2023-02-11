@@ -1,17 +1,19 @@
 const { HttpError } = require("../../utils/helpers/httpError");
 const { User } = require("../../utils/schemas/schemaUser");
 const jwt = require("jsonwebtoken");
+const multer = require("multer");
+const path = require("path");
 
 async function authToken(req, res, next) {
   const authHeader = req.headers.authorization || "";
   const [type, token] = authHeader.split(" ");
 
   if (type !== "Bearer") {
-    throw HttpError(401, "Not authorized");
+    throw new HttpError(401, "Not authorized");
   }
 
   if (!token) {
-    throw HttpError(401, "Not authorized");
+    throw new HttpError(401, "Not authorized");
   }
 
   try {
@@ -25,7 +27,7 @@ async function authToken(req, res, next) {
       error.name === "TokenExpiredError" ||
       error.name === "JsonWebTokenError"
     ) {
-      throw HttpError(401, "Not authorized");
+      throw new HttpError(401, "Not authorized");
     }
     throw error;
   }
@@ -33,4 +35,17 @@ async function authToken(req, res, next) {
   next();
 }
 
-module.exports = { authToken };
+const storage = multer.diskStorage({
+  dest: function (req, file, cb) {
+    cb(null, path.resolve(__dirname, "../tmp"));
+  },
+  filename: function (req, file, cb) {
+    cb(null, Math.round(Math.random() * 100) + file.originalname);
+  },
+});
+
+const upload = multer({
+  storage,
+});
+
+module.exports = { authToken, upload };

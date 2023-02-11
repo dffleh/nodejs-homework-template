@@ -22,3 +22,5 @@ const port = 5151;
     process.exit(1);
   }
 })();
+
+module.exports = port;
