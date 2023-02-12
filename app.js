@@ -24,6 +24,7 @@ app.use((req, res) => {
 });
 
 app.use((err, req, res, next) => {
+  console.log("hfhfjdjd", err);
   if (err.name === "ValidationError") {
     return res.status(400).json({
       message: err.message,
@@ -34,6 +35,7 @@ app.use((err, req, res, next) => {
       message: err.message,
     });
   }
+
   res.status(500).json({ message: err.message });
 });
 

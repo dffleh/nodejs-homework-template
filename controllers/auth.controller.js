@@ -2,16 +2,38 @@ const { User } = require("../utils/schemas/schemaUser");
 const { HttpError } = require("../utils/helpers/httpError");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const gravatar = require("gravatar");
+const { sendMail } = require("../utils/validation/validationToken");
+const { v4 } = require("uuid");
 
 async function signup(req, res, next) {
   const { email, password } = req.body;
   const salt = await bcrypt.genSalt();
+  const avatarURL = gravatar.url(email);
   const hashedPassword = await bcrypt.hash(password, salt);
+  const verificationToken = v4();
 
   try {
     const savedUser = await User.create({
       email,
       password: hashedPassword,
+      avatarURL,
+      verificationToken,
+      verify: false,
+    });
+    await sendMail({
+      to: email,
+      subject: "Please confirm your email",
+      html: `<a href="localhost:3000/api/users/verify/${verificationToken}">Confirm your email</a>`,
+    });
+
+    res.status(201).json({
+      data: {
+        user: {
+          email,
+          subscription: savedUser.subscription,
+        },
+      },
     });
     res.status(201).json(savedUser);
   } catch (error) {
@@ -30,6 +52,13 @@ async function login(req, res, next) {
 
   if (!storedUser) {
     throw new HttpError(401, "Email or password is wrong");
+  }
+
+  if (!storedUser.verify) {
+    throw new HttpError(
+      409,
+      "Email is not verified. Please check your mail box"
+    );
   }
 
   const isPasswordValid = await bcrypt.compare(password, storedUser.password);
