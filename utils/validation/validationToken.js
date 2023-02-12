@@ -3,6 +3,9 @@ const { User } = require("../../utils/schemas/schemaUser");
 const jwt = require("jsonwebtoken");
 const multer = require("multer");
 const path = require("path");
+const nodemailer = require("nodemailer");
+// const { EMAIL_USER, EMAIL_PASS } = process.env;
+require("dotenv").config();
 
 async function authToken(req, res, next) {
   const authHeader = req.headers.authorization || "";
@@ -48,4 +51,25 @@ const upload = multer({
   storage,
 });
 
-module.exports = { authToken, upload };
+async function sendMail({ to, html, subject }) {
+  const email = {
+    from: "info@phoneBook.com",
+    to,
+    subject,
+    html,
+  };
+
+  const transport = nodemailer.createTransport({
+    host: "sandbox.smtp.mailtrap.io",
+    port: 2525,
+    // secure: true,
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
+  });
+
+  await transport.sendMail(email);
+}
+
+module.exports = { authToken, upload, sendMail };

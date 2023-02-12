@@ -4,6 +4,8 @@ const {
   current,
   createContact,
   getContact,
+  verifyEmail,
+  resendVerifyEmail,
 } = require("../../controllers/user.controller");
 const { authToken } = require("../../utils/validation/validationToken");
 const userRouter = express.Router();
@@ -23,5 +25,12 @@ userRouter.get(
   tryCatchWrapper(authToken),
   tryCatchWrapper(getContact)
 );
+userRouter.get(
+  "/current",
+  tryCatchWrapper(authToken),
+  tryCatchWrapper(current)
+);
+userRouter.get("/verify/:verificationToken", tryCatchWrapper(verifyEmail));
+userRouter.post("/verify", tryCatchWrapper(resendVerifyEmail));
 
 module.exports = userRouter;

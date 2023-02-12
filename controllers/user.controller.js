@@ -1,5 +1,7 @@
 const { User } = require("../utils/schemas/schemaUser");
 const { HttpError } = require("../utils/helpers/httpError");
+const { sendMail } = require("../utils/validation/validationToken");
+const port = require("../server.js");
 
 async function current(req, res, next) {
   const { user } = req;
@@ -72,9 +74,54 @@ const updateSubscription = async (req, res, next) => {
   });
 };
 
+async function verifyEmail(req, res, next) {
+  const { verificationToken } = req.params;
+  const user = await User.findOne({
+    verificationToken: verificationToken,
+  });
+
+  if (!user) {
+    throw new HttpError(404, "User not found");
+  }
+
+  await User.findByIdAndUpdate(user._id, {
+    verify: true,
+    verificationToken: null,
+  });
+
+  return res.status(200).json({
+    message: "Verification successful",
+  });
+}
+
+async function resendVerifyEmail(req, res, next) {
+  const { email } = req.body;
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    throw new HttpError(400, "missing required field email");
+  }
+
+  if (user.verify) {
+    throw new HttpError(400, "Verification has already been passed");
+  }
+
+  await sendMail({
+    to: email,
+    subject: "Please confirm your email",
+    html: `<a href="localhost:${port}/api/users/verify/${user.verificationToken}">Confirm your email</a>`,
+  });
+
+  res.json({
+    message: "Verification email sent",
+  });
+}
+
 module.exports = {
   current,
   getContact,
   createContact,
   updateSubscription,
+  verifyEmail,
+  resendVerifyEmail,
 };
